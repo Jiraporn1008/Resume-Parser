@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Parser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+  <div class="relative isolate overflow-hidden bg-white min-h-screen text-gray-900">
+
+    <!-- Background SVG Pattern -->
+    <svg class="absolute inset-0 -z-10 h-full w-full stroke-gray-300 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
+      aria-hidden="true">
+      <defs>
+        <pattern id="bg-pattern" width="200" height="200" x="50%" y="-1" patternUnits="userSpaceOnUse">
+          <path d="M.5 200V.5H200" fill="none" />
+        </pattern>
+      </defs>
+      <svg x="50%" y="-1" class="overflow-visible fill-gray-200/60">
+        <path
+          d="M-200 0h201v201h-201Z M600 0h201v201h-201Z M-400 600h201v201h-201Z M200 800h201v201h-201Z"
+          stroke-width="0" />
+      </svg>
+      <rect width="100%" height="100%" fill="url(#bg-pattern)" />
+    </svg>
+
+    <!-- Gradient Shape -->
+    <div
+      class="absolute left-[calc(50%-4rem)] top-10 -z-10 transform-gpu blur-3xl sm:left-[calc(50%-18rem)] lg:left-48 lg:top-[calc(50%-30rem)] xl:left-[calc(50%-24rem)]"
+      aria-hidden="true">
+      <div class="aspect-[1108/632] w-[69.25rem] bg-gradient-to-r from-[#80caff] to-[#4f46e5] opacity-20"
+        style="clip-path: polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)">
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="mx-auto max-w-7xl px-6 py-24 lg:flex lg:items-start lg:gap-20 lg:px-8">
+      <div class="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
+        <img class="h-11"
+          src="https://res.cloudinary.com/dtsuvx8dz/image/upload/v1706986565/hqatxpsjdg3zeql20jfe.png"
+          alt="Logo">
+
+        <div class="mt-10">
+          <a href="#" class="inline-flex space-x-6">
+            <!-- Optional link content can remain or be removed -->
+          </a>
+        </div>
+
+        <h1 class="mt-10 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Upload and Parse Your Resume</h1>
+        <p class="mt-6 text-lg leading-8 text-gray-700">Our advanced parser extracts detailed info from your resume. Just upload your PDF below.</p>
+
+        <!-- Upload Form (styled as requested) -->
+        <div class="mt-6 flex items-center gap-x-6">
+          <form id="uploadForm" enctype="multipart/form-data" class="w-full">
+            <div class="flex flex-col justify-start items-start sm:flex-row sm:items-center gap-x-6">
+              <input type="file" name="file" id="fileInput" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" required
+                class="drop-shadow-md bg-white font-semibold leading-6 text-gray-900 border border-blue-300 py-2 px-4 rounded-2xl block w-full text-sm text-slate-700
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-blue-50 file:text-blue-600
+                      hover:file:bg-blue-100">
+              <button type="submit"
+                class="my-2 bg-blue-600 px-8 rounded-2xl py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                Process
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div id="loader" class="mt-4 text-blue-600 font-medium hidden">Uploading...</div>
+      </div>
+
+      <!-- Right image -->
+      <div class="mt-16 lg:mt-0">
+        <img src="https://res.cloudinary.com/dtsuvx8dz/image/upload/v1716357077/o1imiun4wwcpia9uucgs.gif" alt="Demo gif"
+          class="w-[15rem] rounded-lg shadow-2xl ring-1 ring-gray-300/40" />
+      </div>
+    </div>
+
+    <!-- Output Section (light styled) -->
+    <div class="px-6 pb-16 flex justify-center items-center">
+      <pre id="output"
+        class="hidden w-full max-w-6xl h-[70vh] bg-gray-85 text-gray-900 rounded-xl shadow-inner p-6 text-sm overflow-auto whitespace-pre-wrap border border-gray-300">
+      </pre>
+    </div>
+  </div>
+
+  <!-- JS Logic -->
+  <script>
+    const form = document.getElementById("uploadForm");
+    const output = document.getElementById("output");
+    const loader = document.getElementById("loader");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      console.log("Uploading file:", file.name, file.type, file.size);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      loader.classList.remove("hidden");
+      output.classList.add("hidden");
+      output.textContent = "";
+
+      try {
+        const res = await fetch("https://test-resume-parser.onrender.com/upload/", {
+          method: "POST",
+          body: formData
+        });
+
+        console.log("Status:", res.status);
+
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status}`);
+        }
+
+        const json = await res.json();
+        console.log("Response JSON:", json);
+
+        output.textContent = formatOutput(json.parsed);
+        output.classList.remove("hidden");
+
+      } catch (err) {
+        console.error("Upload error:", err);
+        output.textContent = "Error uploading file. Check console for details.";
+        output.classList.remove("hidden");
+      } finally {
+        loader.classList.add("hidden");
+      }
+    });
+
+    function formatOutput(obj, indent = 0) {
+      const spacing = '  '.repeat(indent);
+      let result = '';
+
+      for (const key in obj) {
+        const value = obj[key];
+        if (Array.isArray(value)) {
+          result += `${spacing}${key}:\n`;
+          value.forEach((item) => {
+            if (typeof item === 'object') {
+              result += `${spacing}  -\n` + formatOutput(item, indent + 2);
+            } else {
+              result += `${spacing}  - ${item}\n`;
+            }
+          });
+        } else if (typeof value === 'object' && value !== null) {
+          result += `${spacing}${key}:\n` + formatOutput(value, indent + 1);
+        } else {
+          result += `${spacing}${key}: ${value}\n`;
+        }
+      }
+
+      return result;
+    }
+  </script>
+</body>
+
+</html>
