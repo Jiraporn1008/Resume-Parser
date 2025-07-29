@@ -109,32 +109,44 @@ def extract_tesseract_text(file_path: str, timeout=120):
     finally:
         signal.alarm(0)
 
-def smart_resize_image(path: str):
+def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000):
     try:
-        img = Image.open(path).convert("RGB")
+        img = Image.open(path)
+        img = img.convert("RGB")
         width, height = img.size
-        max_size = 850
 
-        if height > width and height > max_size:
-            new_height = max_size
-            scale = new_height / height
-            new_width = int(width * scale)
-        elif width >= height and width > max_size:
-            new_width = max_size
-            scale = new_width / width
-            new_height = int(height * scale)
+        if height > width:
+            if height <= max_height:
+                print(f"[Resize] No resizing needed (height={height} <= {max_height})")
+                return
+            new_height = max_height
+            scale_factor = new_height / height
+            new_width = int(width * scale_factor)
         else:
-            return
+            if width <= max_width:
+                print(f"[Resize] No resizing needed (width={width} <= {max_width})")
+                return
+            new_width = max_width
+            scale_factor = new_width / width
+            new_height = int(height * scale_factor)
 
-        img = img.resize((new_width, new_height), Image.LANCZOS)
-        img.save(path, optimize=True, quality=80)
-        print(f"[Resize] Resized image to {new_width}x{new_height}")
+        resized_img = img.resize((new_width, new_height), Image.LANCZOS)
+        resized_img.save(path, quality=80, optimize=True)
+        print(f"[Resize] Resized to {new_width}x{new_height}")
     except Exception as e:
-        print(f"[Resize] Error: {e}")
+        print(f"[Resize] Failed to resize image: {e}")
+
 
 def extract_text_from_image(file_path: str) -> str:
-    smart_resize_image(file_path)
-    text, conf = extract_easyocr_text(file_path)
+    smart_resize_image(file_path, max_width=1000, max_height=1000)
+    print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
+    text = extract_tesseract_text(file_path)
+
+    # if contains_thai(text):
+    #     smart_resize_image(file_path, max_width=850, max_height=850)
+    #     print(f"[Image] Running EasyOCR on image: {file_path}")
+    #     text, confidence = extract_easyocr_text(file_path)
+
     return text
 
 def extract_text_from_pdf(file_path: str) -> str:
