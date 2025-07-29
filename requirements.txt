@@ -11,3 +11,4 @@ easyocr
 python-multipart
 email-validator
 jinja2
+psutil
