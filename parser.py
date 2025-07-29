@@ -3,7 +3,6 @@ import re
 import signal
 from typing import List, Optional
 from pydantic import BaseModel, Field, EmailStr, constr, confloat
-
 from PIL import Image
 import easyocr
 import pytesseract
@@ -12,11 +11,6 @@ from langchain.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
 from langchain_community.document_loaders import PyPDFLoader
-
-
-# ============================
-# Pydantic Models
-# ============================
 
 class PersonalInformation(BaseModel):
     firstNameEN: str
@@ -73,11 +67,6 @@ class Resume(BaseModel):
     educations: Optional[List[Education]]
     certificates: Optional[List[Certificate]]
 
-
-# ============================
-# Prompt & Model Setup
-# ============================
-
 resume_template = """
 You are an AI assistant tasked with extracting structured information from a technical resume.
 Only extract the information that is present in the Resume class.
@@ -92,21 +81,14 @@ prompt_template = PromptTemplate(template=resume_template, input_variables=['res
 # Use the smallest sufficient model
 model = init_chat_model(model='gpt-4o-mini', model_provider='openai').with_structured_output(Resume)
 
-
-# ============================
-# OCR + Image Utils
-# ============================
-
-# Lazy load EasyOCR Reader (global singleton)
-EASYOCR_READER = easyocr.Reader(['en', 'th'], gpu=False, model_storage_directory='./models/.EasyOCR', download_enabled=False)
-
 class TimeoutException(Exception): pass
 
 def timeout_handler(signum, frame): raise TimeoutException()
 
 def extract_easyocr_text(file_path: str):
     print(f"[EasyOCR] Running EasyOCR on image: {file_path}")
-    results = EASYOCR_READER.readtext(file_path)
+    render = easyocr.Reader(['en', 'th'], gpu=False, model_storage_directory='./models/.EasyOCR', download_enabled=False)
+    results = render.readtext(file_path)
     text = " ".join([res[1] for res in results])
     avg_conf = sum([res[2] for res in results]) / len(results) if results else 0
     print(f"[EasyOCR] Extracted {len(results)} elements with avg confidence: {avg_conf:.2f}")
@@ -142,7 +124,7 @@ def smart_resize_image(path: str):
             scale = new_width / width
             new_height = int(height * scale)
         else:
-            return  # No resize needed
+            return
 
         img = img.resize((new_width, new_height), Image.LANCZOS)
         img.save(path, optimize=True, quality=80)
@@ -155,11 +137,6 @@ def extract_text_from_image(file_path: str) -> str:
     text, conf = extract_easyocr_text(file_path)
     return text
 
-
-# ============================
-# File-Type Text Extraction
-# ============================
-
 def extract_text_from_pdf(file_path: str) -> str:
     loader = PyPDFLoader(file_path)
     docs = loader.load()
@@ -169,27 +146,16 @@ def extract_text_from_docx(file_path: str) -> str:
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
-def extract_text_from_txt(file_path: str) -> str:
-    with open(file_path, "r", encoding="utf-8") as f:
-        return f.read()
-
 def extract_text(file_path: str) -> str:
     ext = os.path.splitext(file_path)[-1].lower()
     if ext == ".pdf":
         return extract_text_from_pdf(file_path)
     elif ext == ".docx":
         return extract_text_from_docx(file_path)
-    elif ext == ".txt":
-        return extract_text_from_txt(file_path)
     elif ext in [".jpg", ".jpeg", ".png"]:
         return extract_text_from_image(file_path)
     else:
         raise ValueError(f"Unsupported file format: {ext}")
-
-
-# ============================
-# Resume Parsing Entry Point
-# ============================
 
 def parse_resume(file_path: str) -> Resume:
     print(f"[Parse] Start parsing: {file_path}")
