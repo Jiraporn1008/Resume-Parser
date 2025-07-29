@@ -158,6 +158,15 @@ def extract_text_from_docx(file_path: str) -> str:
     doc = Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
 
+def clean_invalid_emails(text: str) -> str:
+    pattern = r'[\w\.-]+@[\w\-]+'
+    matches = re.findall(pattern, text)
+    for match in matches:
+        if "@" in match and "." not in match.split("@")[1]:
+            print(f"[Warning] Found invalid email format: {match}")
+            text = text.replace(match, "")
+    return text
+
 def extract_text(file_path: str) -> str:
     ext = os.path.splitext(file_path)[-1].lower()
     if ext == ".pdf":
@@ -172,6 +181,7 @@ def extract_text(file_path: str) -> str:
 def parse_resume(file_path: str) -> Resume:
     print(f"[Parse] Start parsing: {file_path}")
     resume_text = extract_text(file_path)
+    resume_text = clean_invalid_emails(resume_text)
     prompt = prompt_template.invoke({"resume_text": resume_text})
     result = model.invoke(prompt)
     print("[Parse] Resume parsing complete.")
