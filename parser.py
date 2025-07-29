@@ -142,10 +142,10 @@ def extract_text_from_image(file_path: str) -> str:
     print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
     text = extract_tesseract_text(file_path)
 
-    # if contains_thai(text):
-    #     smart_resize_image(file_path, max_width=850, max_height=850)
-    #     print(f"[Image] Running EasyOCR on image: {file_path}")
-    #     text, confidence = extract_easyocr_text(file_path)
+    if re.search(r'[\u0E00-\u0E7F]', text):
+        smart_resize_image(file_path, max_width=850, max_height=850)
+        print(f"[Image] Running EasyOCR on image: {file_path}")
+        text, confidence = extract_easyocr_text(file_path)
 
     return text
 
