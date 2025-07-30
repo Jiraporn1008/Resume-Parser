@@ -139,9 +139,9 @@ def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000)
 
 
 def extract_text_from_image(file_path: str) -> str:
-    # smart_resize_image(file_path, max_width=1000, max_height=1000)
-    # print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
-    # text = extract_tesseract_text(file_path)
+    smart_resize_image(file_path, max_width=1000, max_height=1000)
+    print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
+    text = extract_tesseract_text(file_path)
 
     # if re.search(r'[\u0E00-\u0E7F]', text):
     print("[Image] Thai text detected. Releasing Tesseract memory before EasyOCR.")
@@ -163,11 +163,14 @@ def extract_text_from_docx(file_path: str) -> str:
     return "\n".join([para.text for para in doc.paragraphs])
 
 def clean_invalid_emails(text: str) -> str:
-    pattern = r'[\w\.-]+@[\w\-]+'
+    # Match basic email-like patterns
+    pattern = r'[\w\.-]+@[\w\.-]+'
     matches = re.findall(pattern, text)
+    
     for match in matches:
-        if "@" in match and "." not in match.split("@")[1]:
-            print(f"[Warning] Found invalid email format: {match}")
+        # Remove if it does not end with .com
+        if not match.lower().endswith(".com"):
+            print(f"[Warning] Removing non-.com email: {match}")
             text = text.replace(match, "")
     return text
 
