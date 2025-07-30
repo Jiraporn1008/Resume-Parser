@@ -5,8 +5,9 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
-    LANG=en_US.UTF-8 \
-    LC_ALL=en_US.UTF-8
+    LANG=th_TH.UTF-8 \
+    LANGUAGE=th_TH:th \
+    LC_ALL=th_TH.UTF-8
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -26,7 +27,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     wget \
     locales && \
-    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
+    echo "th_TH.UTF-8 UTF-8" >> /etc/locale.gen && \
     locale-gen && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -34,10 +36,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set working directory
 WORKDIR /app
 
-# Copy project files first
+# Copy project files
 COPY . .
 
-# Download and extract EasyOCR model zip files
+# Download and extract EasyOCR model files
 RUN mkdir -p /app/models/.EasyOCR/recognition && \
     wget -O english_g2.zip https://github.com/JaidedAI/EasyOCR/releases/download/v1.3/english_g2.zip && \
     wget -O thai.zip https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/thai.zip && \
