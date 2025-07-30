@@ -1,0 +1,223 @@
+Windows
+UNIX - HP-UX
+UNIX - AIX
+UNIX - Solaris
+UNIX - SunOS
+UNIX - OSF/1
+IBM - AS/400
+IBM - z/OS
+IBM - OS/390
+Linux - Red Hat
+Linux - Ubuntu
+Linux - Debian
+Linux - SUSE
+Linux - CentOS
+Linux - Fedora
+Mobile - iOS
+Mobile - Android
+MacOS
+JAVA
+JavaScript
+PHP
+CSS
+HTML
+HTML5
+C
+C++
+C#
+ASP
+VB
+C#.NET
+VB.NET
+C
+CPP
+Perl
+Pascal
+Python
+COBOL
+Delphi
+Golang
+XML
+Flutter
+ETL
+MySQL
+Microsoft SQL Server
+Oracle
+DB2
+MongoDB
+MariaDB
+Redis
+Apache Cassandra
+Sybase
+Microsoft Access
+Informix
+Firebase
+PL/SQL
+Function
+Stored Procedure
+Trigger
+View
+Power Designer
+ER Studio
+ER-Win
+Toad
+PL/SQL
+Developer
+SQL Developer
+Apache
+Tomcat
+JBoss
+Web Sphere
+IIS
+SunAppServer
+GlassFish
+WebLogic
+Jetty
+WildFly
+WebObjects
+Ftp
+Telnet
+POP3
+SMTP
+LDAP
+TCP/IP
+Hub
+LAN
+WAN
+Router
+SMS
+VPN
+JBuilder
+WebSphere Studio
+Eclipse
+MyEclipse
+NetBeans
+RAS
+RAD
+PL/SQL Developer
+Bootstrap
+Tailwind
+Encrypt/Decrypt (MD5, Binary, Decimal, Heximal)
+SSL
+J2EE
+J2SE
+JSP
+JSF
+JPA
+Spring MVC
+Servlet
+Struts
+Hibernate
+Log4j
+Apache Axis
+JMeter
+JUnit
+Spring Boot
+JDBC
+Thymeleaf
+POI
+Ajax
+jQuery
+EXT JS
+JSON
+DWR
+AngularJS
+Vue.js
+Reactjs
+React Native
+Typescript
+Express.js
+Node.js
+Microsoft Source-Safe
+Star Team
+CVS
+SVN
+Git
+Crystal Report
+Jasper Report
+iText
+iReport
+Cognos
+Qilkview
+Tableau
+PowerBi
+Dream Weaver
+Visio
+Rational Rose
+Adobe XD
+Photoshop
+InVision
+Zepplin
+Adobe Illustrator
+Lightroom
+Indesign
+Azure RP
+MS Office
+MS Project
+MS Exchange
+MDaemon
+Flash
+UML
+Agile
+SCURM
+Waterfall
+Kanban
+Ansible
+Git
+Apache
+Docker
+Nginx
+Docker
+Jenkins
+Chef
+Puppet
+Kafka
+Kubernetes
+Kibana
+Elasticsearch
+Logstash
+AWS
+Google Cloud
+PaaS
+Azure
+IaaS
+Tableau
+Cognos
+QilkView
+QilkSense
+SAP Business Object
+Power BI
+Hadoop
+Hive Apache
+Cloudera
+Teradata
+Oracle Exadata
+Hyperion
+Microsoft BI
+SAS
+Splunk
+Cassandra
+Neo4j
+Scala
+Pandas
+Elasticsearch (ELK)
+Weka
+SAP S4 HANA
+Ariba
+Test Rail
+Selenium
+QTP
+ALM
+Jira
+Mantis
+Bugzilla
+Redmine
+Appium
+SoapUI
+Robot Framework
+UFT
+Katalon
+Telerik
+Microsoft Office
+Wireless
+SAP
