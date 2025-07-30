@@ -100,7 +100,7 @@ def extract_tesseract_text(file_path: str, timeout=120):
     signal.alarm(timeout)
     try:
         image = Image.open(file_path)
-        custom_config = "--oem 3 --psm 6 -l eng"
+        custom_config = "--oem 3 --psm 6 -l tha+eng"
         text = pytesseract.image_to_string(image, lang="tha+eng", config=custom_config)
         return text.strip()
     except Exception as e:
