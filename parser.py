@@ -147,26 +147,24 @@ def count_valid_words(text: str) -> int:
     words = re.findall(r'\b\w+\b', text)
     return len(words)
 
-def smart_resize_image(path: str):
+def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000):
     try:
         img = Image.open(path)
         img = img.convert("RGB")
         width, height = img.size
 
         if height > width:
-            # Portrait: resize only if height > 1200
-            if height <= 1200:
-                print(f"[Resize] No resizing needed (height={height} <= 1200)")
+            if height <= max_height:
+                print(f"[Resize] No resizing needed (height={height} <= {max_height})")
                 return
-            new_height = 1200
+            new_height = max_height
             scale_factor = new_height / height
             new_width = int(width * scale_factor)
         else:
-            # Landscape or square: resize only if width > 1000
-            if width <= 1200:
-                print(f"[Resize] No resizing needed (width={width} <= 1000)")
+            if width <= max_width:
+                print(f"[Resize] No resizing needed (width={width} <= {max_width})")
                 return
-            new_width = 1200
+            new_width = max_width
             scale_factor = new_width / width
             new_height = int(height * scale_factor)
 
@@ -178,12 +176,10 @@ def smart_resize_image(path: str):
 
 
 def extract_text_from_image(file_path: str) -> str:
-    print(f"[Image] Running resize image for: {file_path}")
-    smart_resize_image(file_path)
+    smart_resize_image(file_path, max_width=1000, max_height=1000)
     print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
     text = extract_tesseract_text(file_path)
     return text
-
 
 def normalize_thai_phone_number(phone: str) -> str:
     digits = re.sub(r"\D", "", phone)
