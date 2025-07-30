@@ -179,7 +179,7 @@ def smart_resize_image(path: str):
 
 def extract_text_from_image(file_path: str) -> str:
     print(f"[Image] Running resize image for: {file_path}")
-    smart_resize_image(file_path, max_width=1200, max_height=1200)
+    smart_resize_image(file_path)
     print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
     text = extract_tesseract_text(file_path)
     return text
