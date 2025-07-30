@@ -130,8 +130,9 @@ def extract_tesseract_text(file_path: str, timeout=180):
     signal.alarm(timeout)
     try:
         image = Image.open(file_path)
-        custom_config = "--oem 3 --psm 6 -l tha+eng"
+        custom_config = "--oem 3 --psm 6"
         text = pytesseract.image_to_string(image, lang="tha+eng", config=custom_config)
+
         print(f"[Tesseract] Extracted {len(text)} characters.")
         return text.strip()
     except Exception as e:
@@ -176,7 +177,7 @@ def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000)
 
 
 def extract_text_from_image(file_path: str) -> str:
-    smart_resize_image(file_path, max_width=1000, max_height=1000)
+    smart_resize_image(file_path, max_width=1200, max_height=1200)
     print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
     text = extract_tesseract_text(file_path)
     return text
