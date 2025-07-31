@@ -6,13 +6,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     LANG=th_TH.UTF-8 \
-    LANGUAGE=th_TH:th \
+    LANGUAGE=th_TH:th,en_US:en \
     LC_ALL=th_TH.UTF-8
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-tha \
+    tesseract-ocr-eng \
     poppler-utils \
     libglib2.0-0 \
     libsm6 \
