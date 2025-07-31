@@ -90,7 +90,7 @@ class TimeoutException(Exception): pass
 
 def timeout_handler(signum, frame): raise TimeoutException()
 
-def extract_tesseract_text(file_path: str, timeout=120):
+def extract_tesseract_text(file_path: str, timeout=300):
     print(f"[Tesseract] Running Tesseract on image: {file_path}")
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)
