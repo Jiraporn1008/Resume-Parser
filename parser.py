@@ -83,7 +83,7 @@ prompt_template = PromptTemplate(
     input_variables=['resume_text']
 )
 
-model = init_chat_model(model='gpt-4o-mini', model_provider='openai').with_structured_output(Resume)
+model = init_chat_model(model='gpt-4o-mini', model_provider='openai', max_tokens=2000).with_structured_output(Resume)
 
 
 class TimeoutException(Exception): pass
