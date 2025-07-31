@@ -126,7 +126,7 @@
         const json = await res.json();
         console.log("Response JSON:", json);
 
-        output.textContent = formatOutput(json.parsed);
+        output.textContent = formatOutput(json.data);
         output.classList.remove("hidden");
 
       } catch (err) {
