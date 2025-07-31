@@ -26,7 +26,7 @@ async def handle_upload(file: UploadFile = File(...)):
         return {
             "success": False,
             "status": "error",
-            "message": "Validation error: only pdf, doc, docx, png, jpg are allowed"
+            "message": "Validation error: only pdf, docx, png, jpg are allowed"
         }
 
     temp_path = f"temp_{file.filename}"
