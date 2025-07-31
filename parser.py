@@ -145,19 +145,40 @@ def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000)
 
 
 def extract_text_from_image(file_path: str) -> str:
+    print(f"[Image] Start processing image: {file_path}")
     smart_resize_image(file_path, max_width=1000, max_height=1000)
-    print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
+
+    print(f"[Image] Running Tesseract OCR pipeline...")
     text = extract_tesseract_text(file_path)
+    print(f"[Image] Finished Tesseract OCR. Extracted text length: {len(text)}")
+
     return text
 
+
 def extract_text_from_pdf(file_path: str) -> str:
+    print(f"[PDF] Start loading PDF: {file_path}")
     loader = PyPDFLoader(file_path)
     docs = loader.load()
-    return "\n".join([doc.page_content for doc in docs])
+    print(f"[PDF] Loaded {len(docs)} pages.")
+
+    text = "\n".join([doc.page_content for doc in docs])
+    print(f"[PDF] Extracted text length: {len(text)}")
+
+    return text
+
 
 def extract_text_from_docx(file_path: str) -> str:
+    print(f"[DOCX] Start loading DOCX file: {file_path}")
     doc = Document(file_path)
-    return "\n".join([para.text for para in doc.paragraphs])
+
+    paragraphs = [para.text for para in doc.paragraphs]
+    print(f"[DOCX] Found {len(paragraphs)} paragraphs.")
+
+    text = "\n".join(paragraphs)
+    print(f"[DOCX] Extracted text length: {len(text)}")
+
+    return text
+
 
 def clean_invalid_emails(text: str) -> str:
     pattern = r'\b[\w\.-]+@[\w\.-]+\.\w+\b'
