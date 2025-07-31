@@ -90,18 +90,29 @@ class TimeoutException(Exception): pass
 
 def timeout_handler(signum, frame): raise TimeoutException()
 
-def extract_tesseract_text(file_path: str, timeout=300):
+def extract_tesseract_text(file_path: str, timeout=300) -> str:
     print(f"[Tesseract] Running Tesseract on image: {file_path}")
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)
+
     try:
         image = Image.open(file_path)
-        custom_config = "--oem 3 --psm 6 -l tha+eng"
-        text = pytesseract.image_to_string(image, lang="tha+eng", config=custom_config)
+        custom_config = "--oem 3 --psm 4 -l tha+eng"
+        text = pytesseract.image_to_string(image, config=custom_config)
+
+        if len(text.strip()) < 100:
+            print("[Tesseract] Fallback to PSM 6 (text too short)")
+            fallback_config = "--oem 3 --psm 6 -l tha+eng"
+            text = pytesseract.image_to_string(image, config=fallback_config)
+
         return text.strip()
+
+    except TimeoutException:
+        print("[Tesseract] OCR timed out.")
+        return "OCR timed out. Try a smaller or clearer image."
     except Exception as e:
-        print(f"[Tesseract] Error: {repr(e)}")
-        return ""
+        print(f"[Tesseract] OCR failed: {repr(e)}")
+        return f"OCR failed: {str(e)}"
     finally:
         signal.alarm(0)
 
