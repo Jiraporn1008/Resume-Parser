@@ -36,6 +36,7 @@ async def handle_upload(file: UploadFile = File(...)):
             f.write(await file.read())
 
         parsed, raw_text = parse_resume(temp_path)
+        print(raw_text)
 
         return {
             "success": True,
