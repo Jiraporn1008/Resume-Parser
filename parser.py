@@ -2,7 +2,7 @@ import os
 import re
 import signal
 from typing import List, Optional
-from pydantic import BaseModel, Field, EmailStr, constr, confloat
+from pydantic import BaseModel, Field, EmailStr, constr, confloat, ValidationError
 
 import pytesseract
 from PIL import Image
@@ -187,13 +187,16 @@ def extract_text(file_path: str) -> str:
         raise ValueError(f"Unsupported file format: {ext}")
     
 def clean_invalid_emails(text: str) -> str:
-    pattern = r'[\w\.-]+@[\w\.-]+'
+    pattern = r'[\w\.-]+@[\w\.-]+\.\w+'
     matches = re.findall(pattern, text)
-    
+
     for match in matches:
-        if not match.lower().endswith(".com"):
-            print(f"[Warning] Removing non-.com email: {match}")
+        try:
+            EmailStr.validate(match)
+        except ValidationError:
+            print(f"[Warning] Removing invalid email: {match}")
             text = text.replace(match, "")
+    
     return text
 
 def load_text_set(filepath: str) -> set:
