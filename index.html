@@ -124,7 +124,7 @@
         }
 
         const json = await res.json();
-        console.log("Response JSON:", json);
+        console.log("Full JSON:", json);
 
         output.textContent = formatOutput(json.data);
         output.classList.remove("hidden");

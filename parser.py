@@ -241,8 +241,13 @@ def parse_resume(file_path: str) -> Resume:
     resume_text = extract_text(file_path)
     resume_text = clean_invalid_emails(resume_text)
     prompt = prompt_template.invoke({"resume_text": resume_text})
-    result = model.invoke(prompt)
-
+    try:
+        result = model.invoke(prompt)
+        print("[Parse] Result:", result)
+    except ValidationError as ve:
+        print("[Pydantic Validation Error]", ve)
+        return Resume()
+    
     if result.personalInformation:
         if result.personalInformation.phone:
             original = result.personalInformation.phone
