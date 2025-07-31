@@ -118,7 +118,7 @@ def extract_tesseract_text(file_path: str, timeout=180):
         print(f"[Tesseract] Extracted {len(text)} characters.")
         return text.strip()
     except Exception as e:
-        print(f"[Tesseract] Error: {e}")
+        print(f"[Tesseract] Error: {repr(e)}")
         return ""
     finally:
         signal.alarm(0)
@@ -163,6 +163,8 @@ def extract_text_from_image(file_path: str) -> str:
     smart_resize_image(file_path)
     print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
     text = extract_tesseract_text(file_path)
+    if not text.strip():
+        print("[Image] Tesseract failed, falling back to EasyOCR")
     return text
 
 def normalize_thai_phone_number(phone: str) -> str:
