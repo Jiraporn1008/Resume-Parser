@@ -1,12 +1,12 @@
 import os
 import re
 import signal
-from typing import List, Optional
-from pydantic import BaseModel, Field, EmailStr, constr, confloat, ValidationError
-
 import pytesseract
 from PIL import Image
 from docx import Document
+from typing import List, Optional
+from pydantic import BaseModel, Field, EmailStr, constr, confloat, ValidationError
+from email.utils import parseaddr
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
@@ -83,39 +83,21 @@ prompt_template = PromptTemplate(
     input_variables=['resume_text']
 )
 
-model = init_chat_model(model='gpt-4o-mini', model_provider='openai', max_tokens=2000).with_structured_output(Resume)
+model = init_chat_model(model='gpt-4o-mini', model_provider='openai').with_structured_output(Resume)
 
 
 class TimeoutException(Exception): pass
 
-def timeout_handler(signum, frame):
-    raise TimeoutException()
+def timeout_handler(signum, frame): raise TimeoutException()
 
-def extract_text_from_pdf(file_path: str) -> str:
-    print(f"[PDF] Extracting text from PDF: {file_path}")
-    loader = PyPDFLoader(file_path)
-    docs = loader.load()
-    combined_text = "\n".join([doc.page_content for doc in docs])
-    print(f"[PDF] Extracted {len(combined_text)} characters from PDF.")
-    return combined_text
-
-def extract_text_from_docx(file_path: str) -> str:
-    print(f"[DOCX] Extracting text from DOCX: {file_path}")
-    doc = Document(file_path)
-    text = "\n".join([para.text for para in doc.paragraphs])
-    print(f"[DOCX] Extracted {len(text)} characters from DOCX.")
-    return text
-
-def extract_tesseract_text(file_path: str, timeout=180):
+def extract_tesseract_text(file_path: str, timeout=120):
     print(f"[Tesseract] Running Tesseract on image: {file_path}")
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)
     try:
         image = Image.open(file_path)
-        custom_config = "--oem 3 --psm 6"
+        custom_config = "--oem 3 --psm 6 -l tha+eng"
         text = pytesseract.image_to_string(image, lang="tha+eng", config=custom_config)
-
-        print(f"[Tesseract] Extracted {len(text)} characters.")
         return text.strip()
     except Exception as e:
         print(f"[Tesseract] Error: {repr(e)}")
@@ -123,31 +105,24 @@ def extract_tesseract_text(file_path: str, timeout=180):
     finally:
         signal.alarm(0)
 
-def contains_thai(text: str) -> bool:
-    return bool(re.search(r'[\u0E00-\u0E7F]', text))
-
-def count_valid_words(text: str) -> int:
-    words = re.findall(r'\b\w+\b', text)
-    return len(words)
-
-def smart_resize_image(path: str):
+def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000):
     try:
         img = Image.open(path)
         img = img.convert("RGB")
         width, height = img.size
 
         if height > width:
-            if height <= 1000:
-                print(f"[Resize] No resizing needed (height={height} <= 1000)")
+            if height <= max_height:
+                print(f"[Resize] No resizing needed (height={height} <= {max_height})")
                 return
-            new_height = 1000
+            new_height = max_height
             scale_factor = new_height / height
             new_width = int(width * scale_factor)
         else:
-            if width <= 1000:
-                print(f"[Resize] No resizing needed (width={width} <= 1000)")
+            if width <= max_width:
+                print(f"[Resize] No resizing needed (width={width} <= {max_width})")
                 return
-            new_width = 1000
+            new_width = max_width
             scale_factor = new_width / width
             new_height = int(height * scale_factor)
 
@@ -159,12 +134,27 @@ def smart_resize_image(path: str):
 
 
 def extract_text_from_image(file_path: str) -> str:
-    print(f"[Image] Running resize image for: {file_path}")
-    smart_resize_image(file_path)
+    smart_resize_image(file_path, max_width=1000, max_height=1000)
     print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
     text = extract_tesseract_text(file_path)
-    if not text.strip():
-        print("[Image] Tesseract failed, falling back to EasyOCR")
+    return text
+
+def extract_text_from_pdf(file_path: str) -> str:
+    loader = PyPDFLoader(file_path)
+    docs = loader.load()
+    return "\n".join([doc.page_content for doc in docs])
+
+def extract_text_from_docx(file_path: str) -> str:
+    doc = Document(file_path)
+    return "\n".join([para.text for para in doc.paragraphs])
+
+def clean_invalid_emails(text: str) -> str:
+    pattern = r'\b[\w\.-]+@[\w\.-]+\.\w+\b'
+    matches = re.findall(pattern, text)
+    for match in matches:
+        if not re.fullmatch(r'[\w\.-]+@[\w\.-]+\.\w{2,}', match):
+            print(f"[Warning] Found possibly invalid email: {match}")
+            text = text.replace(match, "")
     return text
 
 def normalize_thai_phone_number(phone: str) -> str:
@@ -174,32 +164,6 @@ def normalize_thai_phone_number(phone: str) -> str:
     if digits.startswith("0") and len(digits) == 10:
         return digits
     return digits
-
-
-def extract_text(file_path: str) -> str:
-    ext = os.path.splitext(file_path)[-1].lower()
-    print(f"[Main] Extracting text from: {file_path} (extension: {ext})")
-    if ext == ".pdf":
-        return extract_text_from_pdf(file_path)
-    elif ext == ".docx":
-        return extract_text_from_docx(file_path)
-    elif ext in [".jpg", ".jpeg", ".png"]:
-        return extract_text_from_image(file_path)
-    else:
-        raise ValueError(f"Unsupported file format: {ext}")
-    
-def clean_invalid_emails(text: str) -> str:
-    pattern = r'[\w\.-]+@[\w\.-]+\.\w+'
-    matches = re.findall(pattern, text)
-
-    for match in matches:
-        try:
-            _ = EmailStr(match)
-        except ValidationError:
-            print(f"[Warning] Removing invalid email: {match}")
-            text = text.replace(match, "")
-    
-    return text
 
 def load_text_set(filepath: str) -> set:
     with open(filepath, "r", encoding="utf-8") as f:
@@ -229,8 +193,19 @@ def validate_technical_skills(skills: Optional[List[str]], valid_skills: set) ->
             validated.append(skill)
     return validated
 
+def extract_text(file_path: str) -> str:
+    ext = os.path.splitext(file_path)[-1].lower()
+    if ext == ".pdf":
+        return extract_text_from_pdf(file_path)
+    elif ext == ".docx":
+        return extract_text_from_docx(file_path)
+    elif ext in [".jpg", ".jpeg", ".png"]:
+        return extract_text_from_image(file_path)
+    else:
+        raise ValueError(f"Unsupported file format: {ext}")
+
 def parse_resume(file_path: str) -> Resume:
-    print(f"[Parse] Parsing resume: {file_path}")
+    print(f"[Parse] Start parsing: {file_path}")
     resume_text = extract_text(file_path)
     resume_text = clean_invalid_emails(resume_text)
     prompt = prompt_template.invoke({"resume_text": resume_text})
@@ -251,7 +226,6 @@ def parse_resume(file_path: str) -> Resume:
         result.technicalSkills = validate_technical_skills(
             result.technicalSkills, valid_technical_skills
         )
-
+    
     print("[Parse] Resume parsing complete.")
-    print("[Parse] Ready to show data.")
     return result, resume_text
