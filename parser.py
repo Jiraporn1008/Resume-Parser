@@ -194,7 +194,7 @@ def clean_invalid_emails(text: str) -> str:
 
     for match in matches:
         try:
-            EmailStr.validate(match)
+            _ = EmailStr(match)
         except ValidationError:
             print(f"[Warning] Removing invalid email: {match}")
             text = text.replace(match, "")
