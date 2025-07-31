@@ -7,7 +7,6 @@ pypdf
 python-docx
 pillow
 pytesseract
-easyocr
 python-multipart
 email-validator
 jinja2
