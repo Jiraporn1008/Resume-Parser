@@ -39,16 +39,6 @@ WORKDIR /app
 # Copy project files
 COPY . .
 
-# Download and extract EasyOCR model files
-RUN mkdir -p /app/models/.EasyOCR/recognition && \
-    wget -O english_g2.zip https://github.com/JaidedAI/EasyOCR/releases/download/v1.3/english_g2.zip && \
-    wget -O thai.zip https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/thai.zip && \
-    wget -O craft_mlt_25k.zip https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/craft_mlt_25k.zip && \
-    unzip english_g2.zip -d /app/models/.EasyOCR/ && \
-    unzip thai.zip -d /app/models/.EasyOCR/ && \
-    unzip craft_mlt_25k.zip -d /app/models/.EasyOCR/ && \
-    rm *.zip
-
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt

@@ -5,14 +5,12 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, EmailStr, constr, confloat
 
 import pytesseract
-import easyocr
 from PIL import Image
 from docx import Document
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from langchain.chat_models import init_chat_model
 from langchain_community.document_loaders import PyPDFLoader
-
 
 class PersonalInformation(BaseModel):
     firstNameEN: str
@@ -108,22 +106,6 @@ def extract_text_from_docx(file_path: str) -> str:
     print(f"[DOCX] Extracted {len(text)} characters from DOCX.")
     return text
 
-def extract_text_from_txt(file_path: str) -> str:
-    print(f"[TXT] Reading plain text file: {file_path}")
-    with open(file_path, "r", encoding="utf-8") as f:
-        text = f.read()
-        print(f"[TXT] Read {len(text)} characters.")
-        return text
-
-def extract_easyocr_text(file_path: str):
-    print(f"[EasyOCR] Running EasyOCR on image: {file_path}")
-    reader = easyocr.Reader(['en'], gpu=False, model_storage_directory='./models/.EasyOCR', download_enabled=False)
-    results = reader.readtext(file_path)
-    text = " ".join([res[1] for res in results])
-    avg_conf = sum([res[2] for res in results]) / len(results) if results else 0
-    print(f"[EasyOCR] Extracted {len(results)} elements with average confidence: {avg_conf:.2f}")
-    return text, avg_conf
-
 def extract_tesseract_text(file_path: str, timeout=180):
     print(f"[Tesseract] Running Tesseract on image: {file_path}")
     signal.signal(signal.SIGALRM, timeout_handler)
@@ -148,24 +130,24 @@ def count_valid_words(text: str) -> int:
     words = re.findall(r'\b\w+\b', text)
     return len(words)
 
-def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000):
+def smart_resize_image(path: str):
     try:
         img = Image.open(path)
         img = img.convert("RGB")
         width, height = img.size
 
         if height > width:
-            if height <= max_height:
-                print(f"[Resize] No resizing needed (height={height} <= {max_height})")
+            if height <= 1000:
+                print(f"[Resize] No resizing needed (height={height} <= 1000)")
                 return
-            new_height = max_height
+            new_height = 1000
             scale_factor = new_height / height
             new_width = int(width * scale_factor)
         else:
-            if width <= max_width:
-                print(f"[Resize] No resizing needed (width={width} <= {max_width})")
+            if width <= 1000:
+                print(f"[Resize] No resizing needed (width={width} <= 1000)")
                 return
-            new_width = max_width
+            new_width = 1000
             scale_factor = new_width / width
             new_height = int(height * scale_factor)
 
@@ -177,7 +159,8 @@ def smart_resize_image(path: str, max_width: int = 1000, max_height: int = 1000)
 
 
 def extract_text_from_image(file_path: str) -> str:
-    smart_resize_image(file_path, max_width=1200, max_height=1200)
+    print(f"[Image] Running resize image for: {file_path}")
+    smart_resize_image(file_path)
     print(f"[Image] Running Tesseract OCR pipeline for: {file_path}")
     text = extract_tesseract_text(file_path)
     return text
@@ -188,7 +171,7 @@ def normalize_thai_phone_number(phone: str) -> str:
         digits = "0" + digits[2:]
     if digits.startswith("0") and len(digits) == 10:
         return digits
-    return phone
+    return digits
 
 
 def extract_text(file_path: str) -> str:
@@ -198,14 +181,21 @@ def extract_text(file_path: str) -> str:
         return extract_text_from_pdf(file_path)
     elif ext == ".docx":
         return extract_text_from_docx(file_path)
-    elif ext == ".txt":
-        return extract_text_from_txt(file_path)
     elif ext in [".jpg", ".jpeg", ".png"]:
         return extract_text_from_image(file_path)
     else:
         raise ValueError(f"Unsupported file format: {ext}")
+    
+def clean_invalid_emails(text: str) -> str:
+    pattern = r'[\w\.-]+@[\w\.-]+'
+    matches = re.findall(pattern, text)
+    
+    for match in matches:
+        if not match.lower().endswith(".com"):
+            print(f"[Warning] Removing non-.com email: {match}")
+            text = text.replace(match, "")
+    return text
 
-# Load datasets (change paths if needed)
 def load_text_set(filepath: str) -> set:
     with open(filepath, "r", encoding="utf-8") as f:
         return set(line.strip() for line in f if line.strip())
@@ -237,6 +227,7 @@ def validate_technical_skills(skills: Optional[List[str]], valid_skills: set) ->
 def parse_resume(file_path: str) -> Resume:
     print(f"[Parse] Parsing resume: {file_path}")
     resume_text = extract_text(file_path)
+    resume_text = clean_invalid_emails(resume_text)
     prompt = prompt_template.invoke({"resume_text": resume_text})
     result = model.invoke(prompt)
 
@@ -247,12 +238,10 @@ def parse_resume(file_path: str) -> Resume:
             print(f"[Phone] Normalized phone number: {original} → {formatted}")
             result.personalInformation.phone = formatted
 
-        # Validate province
         result.personalInformation.province = validate_province(
             result.personalInformation.province, valid_provinces
         )
 
-    # Validate technical skills
     if result.technicalSkills:
         result.technicalSkills = validate_technical_skills(
             result.technicalSkills, valid_technical_skills
