@@ -70,7 +70,15 @@ class Resume(BaseModel):
 
 resume_template = """
 You are an AI assistant tasked with extracting structured information from a technical resume.
-Only extract the information that is present in the Resume class.
+The resume may be written in either Thai or English.
+
+IMPORTANT:
+- Do not translate any part of the input text.
+- Preserve all content exactly in the language it appears (Thai or English).
+- Extract values into the Resume class **using the original language of each field**.
+- Map fields like firstNameTH and lastNameTH only if the names are written in Thai.
+- Map fields like firstNameEN and lastNameEN only if the names are written in English.
+- Do not guess or generate missing fields.
 
 Resume Detail:
 {resume_text}
